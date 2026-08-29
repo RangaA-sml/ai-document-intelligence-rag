@@ -11,10 +11,99 @@ from src.generation import (
     check_relevance
 )
 
+
+# -----------------------------------
+# Page Configuration
+# -----------------------------------
+
 st.set_page_config(
     page_title="Document Intelligence RAG",
-    page_icon="📄"
+    page_icon="📄",
+    layout="wide"
 )
+
+
+# -----------------------------------
+# Sidebar - Project Information
+# -----------------------------------
+
+with st.sidebar:
+
+    st.title("📄 About")
+
+    st.write(
+        "This AI-powered application allows users "
+        "to interact with PDF documents using "
+        "Retrieval-Augmented Generation (RAG)."
+    )
+
+    st.markdown("### 🔹 This application can:")
+
+    st.markdown(
+        """
+        - 📄 Process PDF documents
+        - 🧩 Split documents into meaningful chunks
+        - 🧠 Generate text embeddings
+        - 🔎 Perform semantic similarity search
+        - 🤖 Generate answers using an LLM
+        - 📚 Show relevant source pages
+        - 🛡️ Reduce answers unrelated to the document
+        """
+    )
+
+    st.markdown("---")
+
+    st.markdown("### ⚙️ Technologies")
+
+    st.markdown(
+        """
+        **Python**
+
+        **Streamlit**
+
+        **LangChain**
+
+        **FAISS**
+
+        **Groq LLM**
+
+        **HuggingFace Embeddings**
+        """
+    )
+
+    st.markdown("---")
+
+    st.markdown("### 🔄 RAG Pipeline")
+
+    st.markdown(
+        """
+        PDF  
+        ↓  
+        Text Extraction  
+        ↓  
+        Chunking  
+        ↓  
+        Embeddings  
+        ↓  
+        FAISS Vector Store  
+        ↓  
+        Semantic Retrieval  
+        ↓  
+        Relevance Check  
+        ↓  
+        Groq LLM  
+        ↓  
+        Answer + Sources
+        """
+    )
+
+    st.markdown("---")
+
+    st.caption(
+        "Built with Python, LangChain, FAISS, "
+        "Streamlit and Groq."
+    )
+
 
 # -----------------------------------
 # Session State
@@ -23,6 +112,10 @@ st.set_page_config(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+
+# -----------------------------------
+# Main Application
+# -----------------------------------
 
 st.title("📄 Document Intelligence RAG")
 
@@ -36,7 +129,7 @@ st.write(
 # -----------------------------------
 
 uploaded_file = st.file_uploader(
-    "Upload a PDF",
+    "📤 Choose a PDF file",
     type=["pdf"]
 )
 
@@ -47,15 +140,24 @@ if uploaded_file is not None:
         f"Uploaded: {uploaded_file.name}"
     )
 
-    if st.button("Process PDF"):
+    if st.button(
+        "🚀 Process PDF",
+        type="primary"
+    ):
 
-        with st.spinner("Processing PDF..."):
+        with st.spinner(
+            "Processing document..."
+        ):
 
             # Load PDF
-            documents = load_pdf(uploaded_file)
+            documents = load_pdf(
+                uploaded_file
+            )
 
             # Split into chunks
-            chunks = split_documents(documents)
+            chunks = split_documents(
+                documents
+            )
 
             # Create embedding model
             embedding_model = create_embedding_model()
@@ -76,11 +178,11 @@ if uploaded_file is not None:
             st.session_state.num_pages = len(documents)
             st.session_state.num_chunks = len(chunks)
 
-            # Clear old conversation
+            # Clear previous conversation
             st.session_state.messages = []
 
         st.success(
-            "PDF processed successfully!"
+            "✅ PDF processed successfully!"
         )
 
 
@@ -89,6 +191,8 @@ if uploaded_file is not None:
 # -----------------------------------
 
 if "vector_store" in st.session_state:
+
+    st.divider()
 
     st.subheader("📑 Document Information")
 
@@ -99,17 +203,20 @@ if "vector_store" in st.session_state:
     col1, col2 = st.columns(2)
 
     with col1:
+
         st.metric(
             "Pages",
             st.session_state.num_pages
         )
 
     with col2:
+
         st.metric(
             "Text Chunks",
             st.session_state.num_chunks
         )
 
+    st.divider()
 
     # -----------------------------------
     # Chat History
@@ -117,13 +224,14 @@ if "vector_store" in st.session_state:
 
     for message in st.session_state.messages:
 
-        with st.chat_message(message["role"]):
+        with st.chat_message(
+            message["role"]
+        ):
 
             st.write(
                 message["content"]
             )
 
-            # Show sources if available
             if message.get("sources"):
 
                 st.caption("📚 Sources")
@@ -146,14 +254,17 @@ if "vector_store" in st.session_state:
 
     if query:
 
-        # Display user's question immediately
+        # Display user question
         with st.chat_message("user"):
+
             st.write(query)
 
 
         with st.chat_message("assistant"):
 
-            with st.spinner("Searching document..."):
+            with st.spinner(
+                "🔎 Searching document..."
+            ):
 
                 # Retrieve relevant chunks
                 results = retrieve_documents(
@@ -164,7 +275,7 @@ if "vector_store" in st.session_state:
 
 
                 # -----------------------------------
-                # Check Retrieval
+                # Retrieval Check
                 # -----------------------------------
 
                 if not results:
@@ -175,14 +286,13 @@ if "vector_store" in st.session_state:
                     )
 
                     relevant = False
-
                     pages = []
 
 
                 else:
 
                     # Check whether retrieved chunks
-                    # are actually relevant
+                    # are relevant to the question
                     relevant = check_relevance(
                         st.session_state.llm,
                         query,
@@ -218,7 +328,7 @@ if "vector_store" in st.session_state:
 
 
                         # -----------------------------------
-                        # Collect source pages
+                        # Collect Source Pages
                         # -----------------------------------
 
                         pages = []
@@ -230,6 +340,7 @@ if "vector_store" in st.session_state:
                             )
 
                             if page not in pages:
+
                                 pages.append(page)
 
 
@@ -240,12 +351,18 @@ if "vector_store" in st.session_state:
             st.write(answer)
 
 
-            # Display sources only when relevant
+            # -----------------------------------
+            # Display Sources
+            # -----------------------------------
+
             if relevant and pages:
 
                 st.caption("📚 Sources")
 
-                for i, page in enumerate(pages, start=1):
+                for i, page in enumerate(
+                    pages,
+                    start=1
+                ):
 
                     st.write(
                         f"Source {i} — Page {page}"
@@ -268,7 +385,6 @@ if "vector_store" in st.session_state:
         }
 
 
-        # Save sources only if relevant
         if relevant and pages:
 
             assistant_message["sources"] = pages
