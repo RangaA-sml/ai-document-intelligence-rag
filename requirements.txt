@@ -3,9 +3,7 @@ langchain
 langchain-community
 langchain-groq
 langchain-huggingface
-langchain-chroma
-chromadb
 sentence-transformers
+faiss-cpu
 pypdf
 python-dotenv
-groq
